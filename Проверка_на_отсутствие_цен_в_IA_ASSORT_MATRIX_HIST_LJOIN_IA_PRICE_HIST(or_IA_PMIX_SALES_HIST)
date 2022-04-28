@@ -22,16 +22,14 @@ CREATE TABLE assort_matrix_hist_20_22 as
 SELECT PRODUCT_ID, PBO_LOCATION_ID, START_DT, END_DT
 FROM IA.IA_ASSORT_MATRIX_HISTORY
 WHERE (YEAR(START_DT) = 2022 and MONTH(START_DT) <= 2) or
-	  (YEAR(START_DT) = 2022 and MONTH(START_DT) = 3 and DAY(START_DT) = 1) or
-	  (YEAR(START_DT) <= 2021 and YEAR(END_DT) >= 2020)
+      (YEAR(START_DT) <= 2021 and YEAR(END_DT) >= 2020)
 ;
 
 
 
 
-/* К таблице "скелета" слева джоиним цены из IA.IA_PRICE_HISTORY и смотрим покрытие. 
-	 (Все ли периоды покрывает таблица цен) 
-   В IA_PRICE_HISTORY 61852 строки START > END, которые мы убрали */
+/* К таблице "скелета" слева джоиним цены из IA.IA_PRICE_HISTORY и смотрим покрытие. (Все ли периоды покрывает таблица цен) 
+   	В IA_PRICE_HISTORY 61852 строки START > END, которые мы убрали */
 proc sql;
 CREATE TABLE assort_matrix_join_ia_pr_hist as 
 SELECT a.PRODUCT_ID, a.PBO_LOCATION_ID, GROSS_PRICE_AMT,
@@ -47,20 +45,11 @@ WHERE p.START_DT <= p.END_DT
 /*Проверки на нулевые значения при пересечении - получилось 4910 строк*/
 proc sql;
 CREATE TABLE proverka as
-select PRODUCT_ID, PBO_LOCATION_ID, 
+SELECT PRODUCT_ID, PBO_LOCATION_ID, 
 	   DATEPART(START_ASSORT) format date9. as START,
 	   DATEPART(END_ASSORT) format date9. as ENDD
-from assort_matrix_join_ia_pr_hist
-where start_price_hist is null;
-
-/*1107 в январе 2022, 0 в декабре 2021, 562 в ноябре 2021, 527 в июне 2021, 389 в июле 2021, 
-	363 в октябре 2021*/
-proc sql;
-select *
-from proverka
-order by start;
-
-
+FROM assort_matrix_join_ia_pr_hist
+WHERE start_price_hist is null;
 
 
 
@@ -72,8 +61,7 @@ CREATE TABLE assort_matrix_hist_20_22 as
 SELECT PRODUCT_ID, PBO_LOCATION_ID, START_DT, END_DT
 FROM IA.IA_ASSORT_MATRIX_HISTORY
 WHERE (YEAR(START_DT) = 2022 and MONTH(START_DT) <= 2) or
-	  (YEAR(START_DT) = 2022 and MONTH(START_DT) = 3 and DAY(START_DT) = 1) or
-	  (YEAR(START_DT) <= 2021 and YEAR(END_DT) >= 2020)
+      (YEAR(START_DT) <= 2021 and YEAR(END_DT) >= 2020)
 ;
 
 /* К таблице "скелета" слева джоиним цены из IA.IA_PMIX_SALES_HISTORY (со всей) и смотрим покрытие. 
@@ -90,13 +78,13 @@ FROM assort_matrix_hist_20_22 as a LEFT JOIN IA.IA_PMIX_SALES_HISTORY as p
 /*Проверки на нулевые значения при пересечении - получилось 4 строки*/
 proc sql;
 CREATE TABLE proverka as
-select PRODUCT_ID, PBO_LOCATION_ID, START_DT, END_DT
-from assort_matr_join_pmix_sale_hist
-where SALES_QTY is null;
+SELECT PRODUCT_ID, PBO_LOCATION_ID, START_DT, END_DT
+FROM assort_matr_join_pmix_sale_hist
+WHERE SALES_QTY is null;
 
 /**/
 proc sql;
-select P.PRODUCT_ID, PRODUCT_NM, L.PBO_LOCATION_ID, PBO_LOCATION_NM, 
+SELECT P.PRODUCT_ID, PRODUCT_NM, L.PBO_LOCATION_ID, PBO_LOCATION_NM, 
 	PROVERKA.START_DT, PROVERKA.END_DT
 FROM PROVERKA INNER JOIN IA.IA_PRODUCT  P
 	ON PROVERKA.PRODUCT_ID = P.PRODUCT_ID INNER JOIN IA.IA_PBO_LOCATION L
